@@ -44,12 +44,13 @@ module Duplex (
 // wire        data_tx_w;        //  Serial transmitter's data out.
 // wire [7:0]  data_out_rx_w;
 // wire [3:0]  bin_w;
+wire  button_out_w;
 
 //  Transmitter unit instance
 TxUnit Transmitter(
     //  Inputs
     .reset_n(reset_n),
-    .send(~send),
+    .send(button_out_w),
     .clock(clk),
     .parity_type(parity_type),
     .baud_rate(2'b10),
@@ -72,6 +73,14 @@ UART_Rx Reciever(
 	.HEX0(HEX0),
 	.HEX2(HEX2),
 	.HEX3(HEX3)
+);
+
+debounce #(.COUNTS(50000)) dbn 
+(
+	.clk(clk),
+	.rst(~reset_n),
+	.button_in(~send),
+	.button_out(button_out_w)
 );
 
 endmodule

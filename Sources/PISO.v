@@ -25,8 +25,6 @@ reg [3:0]   stop_count;
 //  an index for the bit of the frame which its turn to get transmitted.
 reg [10:0]  frame;
 reg [10:0]  frame_r;
-//  Frame: {idle 1 if needed,stopbit,ParityBit,RegOut[MSB:LSB],Startbit}
-reg [7:0]   reg_data;
 //  Holds the data untill transmission is done.
 reg         next_state;
 //  Holds the FSM's next state.
@@ -35,34 +33,22 @@ reg         next_state;
 localparam IDLE   = 1'b0,
            ACTIVE = 1'b1;
 
-
-//  Set the data and hold it in reset and IDLE case
-always @(negedge next_state)
-begin
-    if (~next_state) 
-    begin
-        reg_data <= data_in;
-    end
-    else
-    begin
-        reg_data <= reg_data;
-    end
-end
-
 //  Frame generation combinational logic
-always @(reg_data, parity_type, parity_bit)
+always @(parity_type, parity_bit, data_in)
 begin
     if ((~|parity_type) || (&parity_type))
     //  This is an equivalent condition to (parity_type == 'b00)
     //  or (parity_type == 'b11), in order to avoid comparators/xors
     begin
+        //  Frame: {idle 1 if needed,stopbit,ParityBit,RegOut[MSB:LSB],Startbit}
         //  Frame with no parity bit
-        frame  = {2'b11,reg_data,1'b0};
+        frame  = {2'b11,data_in,1'b0};
     end
     else
     begin
+        //  Frame: {idle 1 if needed,stopbit,ParityBit,RegOut[MSB:LSB],Startbit}
         //  Frame with parity bit
-        frame  = {1'b1,parity_bit,reg_data,1'b0};
+        frame  = {1'b1,parity_bit,data_in,1'b0};
     end
 end
 
